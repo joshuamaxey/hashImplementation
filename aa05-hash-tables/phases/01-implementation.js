@@ -9,8 +9,9 @@ class KeyValuePair {
 class HashTable { // get O(1), set O(1), deleteKey O(1)
 
   constructor(numBuckets = 8) {
-    // Initialize your buckets here
-    // Your code here 
+    this.count = 0;
+    this.capacity = numBuckets;
+    this.data = new Array(this.capacity).fill(null);
   }
 
   hash(key) {
@@ -30,22 +31,96 @@ class HashTable { // get O(1), set O(1), deleteKey O(1)
 
 
   insert(key, value) {
-    // Your code here 
+    let loadFactor = this.count / this.capacity;
+
+    if (loadFactor > 0.7) {
+      this.resize();
+    }
+
+    let index = this.hashMod(key);
+
+    let keyPair = new KeyValuePair(key, value);
+
+    if (!this.data[index]) {
+      this.data[index] = keyPair;
+    } else {
+      let current = this.data[index];
+      while(current) {
+        if (current.key === key) {
+          current.value = value;
+          return;
+        }
+
+        current = current.next;
+      }
+
+      keyPair.next = this.data[index];
+      this.data[index] = keyPair;
+    }
+
+    this.count++;
   }
 
 
   read(key) {
-    // Your code here 
+    let index = this.hashMod(key);
+
+    let current = this.data[index];
+
+    while (current) {
+      if (current.key === key) {
+        return current.value;
+      }
+      current = current.next;
+    }
+    return undefined;
   }
 
 
   resize() {
-    // Your code here 
+    let copyData = this.data.slice();
+
+    this.capacity *= 2;
+
+    this.data = new Array(this.capacity).fill(null);
+
+    this.count = 0;
+
+    for (let keyPair of copyData) {
+
+      let current = keyPair;
+      while (current) {
+        this.insert(current.key, current.value);
+        current = current.next;
+      }
+    }
   }
 
 
   delete(key) {
-    // Your code here 
+    let index = this.hashMod(key);
+
+    let current = this.data[index];
+
+    let previous = null;
+
+    while (current) {
+      if (current.key === key) {
+        if (previous === null) {
+          this.data[index] = current.next;
+        } else {
+          previous.next = current.next;
+        }
+
+        this.count--;
+        return undefined;
+      }
+
+      previous = current;
+      current = current.next;
+    }
+
+    return "Key not found";
   }
 }
 
